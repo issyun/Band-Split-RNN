@@ -39,7 +39,8 @@ class SourceSeparationDataset(Dataset):
         elif txt_path is not None and txt_dir is None:
             self.txt_path = Path(txt_path)
         else:
-            raise ValueError("You need to specify either 'txt_path' or 'txt_dir'.")
+            raise ValueError(
+                "You need to specify either 'txt_path' or 'txt_dir'.")
 
         self.preload_dataset = preload_dataset
         self.is_mono = is_mono
@@ -59,7 +60,8 @@ class SourceSeparationDataset(Dataset):
             if file_name not in filename2label:
                 filename2label[file_name] = i
                 i += 1
-            filepath_template = self.file_dir / "train" / f"{file_name}" / "{}.wav"
+            filepath_template = self.file_dir / \
+                "train" / f"{file_name}" / "{}.wav"
             if self.preload_dataset:
                 mix_segment, tgt_segment = self.load_files(
                     str(filepath_template), (int(start_idx), int(end_idx))
@@ -78,7 +80,8 @@ class SourceSeparationDataset(Dataset):
     ) -> torch.Tensor:
         """Load a single audio file.
         """
-        assert Path(file_path).is_file(), f"There is no such file - {file_path}."
+        assert Path(file_path).is_file(
+        ), f"There is no such file - {file_path}."
 
         offset = indices[0]
         num_frames = indices[1] - indices[0]
@@ -199,6 +202,60 @@ class SourceSeparationDataset(Dataset):
         return len(self.filelist)
 
 
+class MidSideDataset(SourceSeparationDataset):
+    def __init__(
+            self,
+            file_dir: str,
+            txt_dir: str = None,
+            txt_path: str = None,
+            target: str = 'vocals',
+            preload_dataset: bool = False,
+            is_mono: bool = False,
+            is_training: bool = True,
+            sr: int = 44100,
+            silent_prob: float = 0.1,
+            mix_prob: float = 0.1,
+            mix_tgt_too: bool = False,
+            side_stereo: bool = False
+    ):
+        super().__init__(
+            file_dir, txt_dir, txt_path, target, preload_dataset, is_mono, is_training, sr, silent_prob, mix_prob, mix_tgt_too
+        )
+        self.side_stereo = side_stereo
+
+    def __getitem__(
+            self,
+            index: int
+    ) -> tp.Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Each Tensor's output shape: [n_channels, frames_in_segment]
+        """
+        # load files
+        if self.preload_dataset:
+            mix_segment, tgt_segment = self.filelist[index]
+        else:
+            mix_segment, tgt_segment = self.load_files(*self.filelist[index])
+
+        # augmentations related to mixing/dropping sources
+        mix_segment, tgt_segment = self.augment(mix_segment, tgt_segment)
+
+        if self.side_stereo:
+            mix_mid = (mix_segment[0, :] + mix_segment[1, :]) / 2
+            mix_side = mix_segment - mix_mid.repeat(2, 1)
+            tgt_mid = (tgt_segment[0, :] + tgt_segment[1, :]) / 2
+            tgt_side = tgt_segment - tgt_mid.repeat(2, 1)
+        else:
+            mix_mid = (mix_segment[0, :] + mix_segment[1, :]) / 2
+            mix_side = (mix_segment[0, :] - mix_segment[1, :]) / 2
+            tgt_mid = (tgt_segment[0, :] + tgt_segment[1, :]) / 2
+            tgt_side = (tgt_segment[0, :] - tgt_segment[1, :]) / 2
+
+        return (
+            torch.stack([mix_mid, mix_side]), torch.stack([tgt_mid, tgt_side])
+        )
+
+
+
 class EvalSourceSeparationDataset(Dataset):
     """
     Dataset class for working with test data from MUSDB18 dataset.
@@ -269,7 +326,8 @@ class EvalSourceSeparationDataset(Dataset):
         return filelist
 
     def load_file(self, file_path: str) -> torch.Tensor:
-        assert Path(file_path).is_file(), f"There is no such file - {file_path}."
+        assert Path(file_path).is_file(
+        ), f"There is no such file - {file_path}."
         y, sr = torchaudio.load(
             file_path,
             channels_first=True

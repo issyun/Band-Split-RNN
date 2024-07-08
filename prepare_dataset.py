@@ -49,7 +49,7 @@ parser.add_argument(
     '--targets',
     nargs='+',
     required=False,
-    default=["vocals"],
+    default=["vocals", "bass", "drums", "other"],
     help="Target source (vocals, bass, drums, other). SAD will save salient fragments of vocal audio."
 )
 args = parser.parse_args()
