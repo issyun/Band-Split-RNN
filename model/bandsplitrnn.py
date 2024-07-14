@@ -27,7 +27,7 @@ class BandSplitRNN(nn.Module):
             mlp_dim: int,
             return_mask: bool = False
     ):
-        super(BandSplitRNN, self).__init__()
+        super().__init__()
 
         # encoder layer
         self.bandsplit = BandSplitModule(

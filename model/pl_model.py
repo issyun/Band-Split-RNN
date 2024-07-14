@@ -39,7 +39,7 @@ class PLModel(pl.LightningModule):
         self.sch = sch
 
         # logging
-        self.save_hyperparameters(hparams)
+        # self.save_hyperparameters(hparams) hehehe
 
     def training_step(
             self, batch, batch_idx
@@ -49,11 +49,11 @@ class PLModel(pl.LightningModule):
         """
         loss, loss_dict, usdr = self.step(batch)
 
-        # logging
-        for k in loss_dict:
-            self.log(f"train/{k}", loss_dict[k].detach(), on_epoch=True, on_step=False)
-        self.log("train/loss", loss.detach(), on_epoch=True, on_step=False)
-        self.log("train/usdr", usdr.detach(), on_epoch=True, on_step=False)
+        # logging hehehe
+        # for k in loss_dict:
+        #     self.log(f"train/{k}", loss_dict[k].detach(), on_epoch=True, on_step=False)
+        # self.log("train/loss", loss.detach(), on_epoch=True, on_step=False)
+        # self.log("train/usdr", usdr.detach(), on_epoch=True, on_step=False)
 
         return loss
 
@@ -61,11 +61,11 @@ class PLModel(pl.LightningModule):
             self, batch, batch_idx
     ) -> torch.Tensor:
         loss, loss_dict, usdr = self.step(batch)
-        # logging
-        for k in loss_dict:
-            self.log(f"val/{k}", loss_dict[k])
-        self.log("val/loss", loss, prog_bar=True)
-        self.log("val/usdr", usdr, prog_bar=True)
+        # logging hehehe
+        # for k in loss_dict:
+        #     self.log(f"val/{k}", loss_dict[k])
+        # self.log("val/loss", loss, prog_bar=True)
+        # self.log("val/usdr", usdr, prog_bar=True)
 
         return loss
 
@@ -144,11 +144,11 @@ class PLModel(pl.LightningModule):
         return usdr.mean()
 
     def on_before_optimizer_step(
-            self, optimizer, optimizer_idx
+            self, optimizer, optimizer_idx=None
     ):
         norms = pl.utilities.grad_norm(self, norm_type=2)
         norms = dict(filter(lambda elem: '_total' in elem[0], norms.items()))
-        self.log_dict(norms)
+        # self.log_dict(norms) hehehe
 
     def configure_optimizers(self):
         return [self.opt], [self.sch]

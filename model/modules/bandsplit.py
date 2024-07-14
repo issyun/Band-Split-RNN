@@ -21,7 +21,7 @@ class BandSplitModule(nn.Module):
             complex_as_channel: bool = True,
             is_mono: bool = False,
     ):
-        super(BandSplitModule, self).__init__()
+        super().__init__()
 
         frequency_mul = 1
         if complex_as_channel:

@@ -27,6 +27,7 @@ class SourceSeparationDataset(Dataset):
             silent_prob: float = 0.1,
             mix_prob: float = 0.1,
             mix_tgt_too: bool = False,
+            side_stereo = None
     ):
         self.file_dir = Path(file_dir)
         self.is_training = is_training
